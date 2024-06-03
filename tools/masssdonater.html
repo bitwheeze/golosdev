@@ -28,6 +28,8 @@
         }
 
         function calculateDonates() {
+            const precision = assetPrecision[asset];
+            const rounder = Math.pow(10, precision);
             const amount = document.getElementById('amountField').value;
             if (isNaN(amount) || !amount) {
                 return;
@@ -39,12 +41,13 @@
                 return;
             }
 
-            const amountPerUser = (Math.floor(1000 * (parseFloat(amount) / userCount)) / 1000).toFixed(assetPrecision[asset]);
+            console.log("userCount", userCount, amount, rounder, precision);
+            const amountPerUser = (Math.floor(rounder * (parseFloat(amount) / userCount)) / rounder).toFixed(precision);
             Object.keys(userList).forEach(user => userList[user] = amountPerUser + " " + asset);
 
-            donateSum = parseFloat((amountPerUser * userCount).toFixed(assetPrecision[asset]));
+            donateSum = parseFloat((amountPerUser * userCount).toFixed(precision));
             document.getElementById('amountField').value = donateSum;
-            document.getElementById("sendTitle").innerText = "Распределить " + donateSum.toFixed(assetPrecision[asset]) + " " + asset + " вознаграждения среди " + Object.keys(userList).length + " получателей";
+            document.getElementById("sendTitle").innerText = "Распределить " + donateSum.toFixed(precision) + " " + asset + " вознаграждения среди " + Object.keys(userList).length + " получателей";
         }
 
     </script>
@@ -244,7 +247,7 @@
                 .map(ab => Object.keys(ab).map(k => ab[k]).map(b => b.tip_balance))
                 .flat()
                 .map(a => toAsset(a))
-                .filter(a => a.value >= 1);
+                .filter(a => a.value > 0);
 
             const accs = await golos.api.getAccountsAsync([account]);
             const golosBalance = toAsset(accs[0].tip_balance);
